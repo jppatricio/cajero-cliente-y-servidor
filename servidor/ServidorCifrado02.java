@@ -83,11 +83,22 @@ public class ServidorCifrado02 {
           opcionLeida = new String(newPlainText, "UTF8");
           logger.log(Level.INFO, "El argumento DESENCRIPTADO es: {0}", opcionLeida);
 
+          String errorMsg = "Algo salio mal. Reintente";
+
           switch (opcionLeida) {
             case "1":
+            if(!getSaldo().equalsIgnoreCase(""))
+            {
               cipherText = cipher.doFinal(getSaldo().getBytes());
               dos.write(cipherText.length);
               dos.write(cipherText);
+            }
+            else{
+              cipherText = cipher.doFinal(errorMsg.getBytes());
+              dos.write(cipherText.length);
+              dos.write(cipherText);
+            }
+
               break;
 
             case "2":
@@ -111,10 +122,10 @@ public class ServidorCifrado02 {
                     dos.write(cipherText);
                     correctDeposit = true;
                   } else {
-                    cipherText = cipher.doFinal("Algo salio mal. Reintente".getBytes());
+                    cipherText = cipher.doFinal(errorMsg.getBytes());
                     dos.write(cipherText.length);
                     dos.write(cipherText);
-                    correctDeposit = true;
+                    correctDeposit = false;
                   }
                 } catch (Exception e) {
                   cipherText = cipher.doFinal("Error > Ingrese un valor numerico... *Ej=>200.50".getBytes());
@@ -150,7 +161,7 @@ public class ServidorCifrado02 {
                     dos.write(cipherText);
                     correctWithdrawal = true;
                   } else {
-                    cipherText = cipher.doFinal(("Algo salio mal. Reintente").getBytes());
+                    cipherText = cipher.doFinal(errorMsg.getBytes());
                     dos.write(cipherText.length);
                     dos.write(cipherText);
                     correctWithdrawal = true;
@@ -211,8 +222,8 @@ public class ServidorCifrado02 {
       reader.close();
       return ("Saldo es de: $" + line + " MXN");
 
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      return "";
     }
   }
 
@@ -224,8 +235,8 @@ public class ServidorCifrado02 {
       reader.close();
       return Float.parseFloat(line);
 
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      return -1f;
     }
   }
 
@@ -236,7 +247,8 @@ public class ServidorCifrado02 {
       s = s + q;
       writer.write(s.toString());
       writer.close();
-    } catch (IOException e) {
+      return true;
+    } catch (Exception e) {
       return false;
     }
   }
@@ -253,7 +265,7 @@ public class ServidorCifrado02 {
       writer.write(s.toString());
       writer.close();
       return "OK";
-    } catch (IOException e) {
+    } catch (Exception e) {
       return "Error";
     }
   }
