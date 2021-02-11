@@ -1,6 +1,9 @@
 import java.net.*;
 import java.io.*;
 import java.security.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.crypto.*;
 
 public class ClienteCifrado02
@@ -13,18 +16,11 @@ public class ClienteCifrado02
 
   try
   {
-   /*
-   System.out.println( "Generando la llave..." );
-   KeyGenerator keyGen = KeyGenerator.getInstance("DES");
-   keyGen.init(56);
-   Key llave = keyGen.generateKey();
-   System.out.println( "Llave generada!" );
-   System.out.println( "llave=" + llave );
-   */
-                        
+  Logger logger = Logger.getLogger(ClienteCifrado02.class.toString());  
+
    ObjectInput in = new ObjectInputStream(new FileInputStream("../servidor/llave.ser"));
    Key llave = (Key)in.readObject();
-   System.out.println( "llave=" + llave );
+   logger.log(Level.INFO, "llave= {0}.", llave );
    in.close();
 			
    System.out.println("Me conecto al puerto 8000 del servidor");
@@ -35,15 +31,15 @@ public class ClienteCifrado02
    // Ya que me conecte con el Servidor, debo leer del teclado para despues eso mismo enviarlo al Servidor
    BufferedReader br = new BufferedReader( new InputStreamReader( System.in ) );
    peticion = br.readLine();
-   System.out.println( "Mi peticion es: " + peticion );
-   System.out.println( "Ahora encriptamos la peticion..." );
+   logger.log(Level.INFO, "Mi peticion es: {0}.", peticion );
+   logger.log(Level.INFO, "Ahora encriptamos la peticion..." );
 
    byte[] arrayPeticion = peticion.getBytes();
-   Cipher cifrar = Cipher.getInstance("DES");
+   Cipher cifrar = Cipher.getInstance("AES");
    cifrar.init(Cipher.ENCRYPT_MODE, llave);
    byte[] cipherText = cifrar.doFinal( arrayPeticion );
-   System.out.println( "El argumento ENCRIPTADO es:" );
-   System.out.println( new String( cipherText ) );
+   logger.log(Level.INFO, "El argumento ENCRIPTADO es:" );
+   logger.log(Level.INFO, new String( cipherText ) );
    bytesToBits( cipherText );
    // Primero envio la longitud del arreglo cifrado
    dos.write( cipherText.length );
