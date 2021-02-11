@@ -12,6 +12,7 @@ public class ServidorCifrado02 {
 
   public static void main(String a[]) throws Exception {
 
+
     Logger logger = Logger.getLogger(ServidorCifrado02.class.toString());
 
     ServerSocket serverSocket = null;
@@ -199,6 +200,7 @@ public class ServidorCifrado02 {
       stringToBits.append(binary);
     }
     System.out.println("El mensaje completo en bits es:" + stringToBits);
+
   }
 
   public static String getSaldo() {
@@ -212,7 +214,6 @@ public class ServidorCifrado02 {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    return 
   }
 
   public static Float getFloatSaldo() {
@@ -258,3 +259,4 @@ public class ServidorCifrado02 {
   }
 
 }
+
