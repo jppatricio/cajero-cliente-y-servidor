@@ -13,6 +13,8 @@ public class ClienteCifrado02
   Socket socket = null;
   // Peticion es lo que envia el Cliente
   String peticion = "";
+  String respuesta = null;
+  boolean conectionIsNotLost = true;
 
   try
   {
@@ -28,8 +30,18 @@ public class ClienteCifrado02
    // Como ya hay socket, obtengo los flujos asociados a este
    DataInputStream dis = new DataInputStream( socket.getInputStream() );
    DataOutputStream dos = new DataOutputStream( socket.getOutputStream() );
+    BufferedReader br = new BufferedReader( new InputStreamReader( System.in ) );
+   while(conectionIsNotLost){
+// Despues de la conexion, Servidor y Cliente deben ponerse de acuerdo
+    // para ver quien escribe primero y entonces el otro debe leer
+
+    respuesta = dis.readUTF();//se lee un mensaje
+     System.out.println("El mensaje que me envio el servidor es: " + respuesta);
+    // Como el Servidor escribe, yo debo leer
+
+
    // Ya que me conecte con el Servidor, debo leer del teclado para despues eso mismo enviarlo al Servidor
-   BufferedReader br = new BufferedReader( new InputStreamReader( System.in ) );
+   //BufferedReader br = new BufferedReader( new InputStreamReader( System.in ) );
    peticion = br.readLine();
    logger.log(Level.INFO, "Mi peticion es: {0}.", peticion );
    logger.log(Level.INFO, "Ahora encriptamos la peticion..." );
@@ -45,10 +57,11 @@ public class ClienteCifrado02
    dos.write( cipherText.length );
    dos.write( cipherText );
 
-   //encriptar(peticion, llave, dos);
-   dos.close();
+   }
+    dos.close();
    dis.close();
    socket.close();
+    
   }
   catch(IOException e)
   {
