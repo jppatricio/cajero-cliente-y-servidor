@@ -12,7 +12,6 @@ public class ServidorCifrado02 {
 
   public static void main(String a[]) throws Exception {
 
-
     Logger logger = Logger.getLogger(ServidorCifrado02.class.toString());
 
     ServerSocket serverSocket = null;
@@ -87,18 +86,15 @@ public class ServidorCifrado02 {
 
           switch (opcionLeida) {
             case "1":
-            if(!getSaldo().equalsIgnoreCase(""))
-            {
-              cipherText = cipher.doFinal(getSaldo().getBytes());
-              dos.write(cipherText.length);
-              dos.write(cipherText);
-            }
-            else{
-              cipherText = cipher.doFinal(errorMsg.getBytes());
-              dos.write(cipherText.length);
-              dos.write(cipherText);
-            }
-
+              if (!getSaldo().equalsIgnoreCase("")) {
+                cipherText = cipher.doFinal(getSaldo().getBytes());
+                dos.write(cipherText.length);
+                dos.write(cipherText);
+              } else {
+                cipherText = cipher.doFinal(errorMsg.getBytes());
+                dos.write(cipherText.length);
+                dos.write(cipherText);
+              }
               break;
 
             case "2":
@@ -106,11 +102,12 @@ public class ServidorCifrado02 {
               dos.write(cipherText.length);
               dos.write(cipherText);
               boolean correctDeposit = false;
-              while (correctDeposit) {
+              while (!correctDeposit) {
                 // LECTURA DE LA RESPUESTA AL CLIENTE
                 bytesLeidos = dis.read();
                 logger.log(Level.INFO, "bytes leidos= {0}.", bytesLeidos);
-                dis.read(new byte[bytesLeidos]);
+                arreglo = new byte[bytesLeidos];
+                dis.read(arreglo);
                 newPlainText = decipher.doFinal(arreglo);
                 opcionLeida = new String(newPlainText, "UTF8");
                 logger.log(Level.INFO, "El argumento DESENCRIPTADO es: {0}", opcionLeida);
@@ -139,14 +136,15 @@ public class ServidorCifrado02 {
               dos.write(cipherText.length);
               dos.write(cipherText);
               boolean correctWithdrawal = false;
-              while (correctWithdrawal) {
+              while (!correctWithdrawal) {
                 // LECTURA DE LA RESPUESTA AL CLIENTE
                 bytesLeidos = dis.read();
                 logger.log(Level.INFO, "bytes leidos= {0}.", bytesLeidos);
-                dis.read(new byte[bytesLeidos]);
+                arreglo = new byte[bytesLeidos];
+                dis.read(arreglo);
                 newPlainText = decipher.doFinal(arreglo);
                 opcionLeida = new String(newPlainText, "UTF8");
-                logger.log(Level.INFO, "El argumento DESENCRIPTADO es: {0}", opcionLeida);
+                logger.log(Level.INFO, "Withdrawing: {0}", opcionLeida);
                 try {
                   float f = Float.parseFloat(opcionLeida);
                   if (putWithdrawal(f).equalsIgnoreCase("OK")) {
@@ -181,6 +179,7 @@ public class ServidorCifrado02 {
               break;
 
             default:
+              logger.log(Level.FINE, "THIS IS FINE!");
               break;
           }
         }
@@ -242,8 +241,8 @@ public class ServidorCifrado02 {
 
   public static boolean putDeposit(float q) {
     try {
-      FileWriter writer = new FileWriter("client.txt", false);
       Float s = getFloatSaldo();
+      FileWriter writer = new FileWriter("client.txt", false);
       s = s + q;
       writer.write(s.toString());
       writer.close();
@@ -255,13 +254,12 @@ public class ServidorCifrado02 {
 
   public static String putWithdrawal(float q) {
     try {
-      FileWriter writer = new FileWriter("client.txt", false);
       Float s = getFloatSaldo();
       if ((s - q) < 0) {
-        writer.close();
         return "Zero";
       }
       s = s - q;
+      FileWriter writer = new FileWriter("client.txt", false);
       writer.write(s.toString());
       writer.close();
       return "OK";
@@ -271,4 +269,3 @@ public class ServidorCifrado02 {
   }
 
 }
-
