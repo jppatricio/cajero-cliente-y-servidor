@@ -15,6 +15,14 @@ public class ClienteCifrado02
   String peticion = "";
   String respuesta = null;
   boolean conectionIsNotLost = true;
+  byte[] cipherText;
+  int bytesLeidos;
+  Cipher decipher = Cipher.getInstance("AES");
+  Cipher cipher = Cipher.getInstance("AES");
+          String mensaje = "";
+        String opcionLeida = "";
+        String response = "";
+
 
   try
   {
@@ -24,6 +32,8 @@ public class ClienteCifrado02
    Key llave = (Key)in.readObject();
    logger.log(Level.INFO, "llave= {0}.", llave );
    in.close();
+
+
 			
    System.out.println("Me conecto al puerto 8000 del servidor");
    socket = new Socket(a[0],8000);
@@ -35,9 +45,22 @@ public class ClienteCifrado02
 // Despues de la conexion, Servidor y Cliente deben ponerse de acuerdo
     // para ver quien escribe primero y entonces el otro debe leer
 
-    respuesta = dis.readUTF();//se lee un mensaje
-     System.out.println("El mensaje que me envio el servidor es: " + respuesta);
+    //respuesta = dis.readUTF();//se lee un mensaje
+     //System.out.println("El mensaje que me envio el servidor es: " + respuesta);
     // Como el Servidor escribe, yo debo leer
+
+
+  decipher.init(Cipher.DECRYPT_MODE, llave);
+  cipher.init(Cipher.ENCRYPT_MODE, llave);
+
+          // LECTURA DE LA RESPUESTA DEL SERVIDOR
+          bytesLeidos = dis.read();
+          //System.out.println("El mensaje que me envio el servidor es: " + bytesLeidos);
+          byte arreglo[] = new byte[bytesLeidos];
+          dis.read(arreglo);
+          byte[] newPlainText = decipher.doFinal(arreglo);
+          opcionLeida = new String(newPlainText, "UTF8");
+          logger.log(Level.INFO, "El argumento DESENCRIPTADO es: {0}", opcionLeida);
 
 
    // Ya que me conecte con el Servidor, debo leer del teclado para despues eso mismo enviarlo al Servidor
@@ -49,10 +72,10 @@ public class ClienteCifrado02
    byte[] arrayPeticion = peticion.getBytes();
    Cipher cifrar = Cipher.getInstance("AES");
    cifrar.init(Cipher.ENCRYPT_MODE, llave);
-   byte[] cipherText = cifrar.doFinal( arrayPeticion );
+   cipherText = cifrar.doFinal( arrayPeticion );
    logger.log(Level.INFO, "El argumento ENCRIPTADO es:" );
    logger.log(Level.INFO, new String( cipherText ) );
-   bytesToBits( cipherText );
+  // bytesToBits( cipherText );
    // Primero envio la longitud del arreglo cifrado
    dos.write( cipherText.length );
    dos.write( cipherText );
