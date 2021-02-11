@@ -6,8 +6,7 @@ import java.util.logging.Logger;
 
 import javax.crypto.*;
 
-public class ServidorCifrado02
-{
+public class ServidorCifrado02 {
  public static void main(String a[]) throws Exception
  {
 
@@ -47,29 +46,81 @@ public class ServidorCifrado02
     socket = serverSocket.accept();
     logger.log(Level.INFO, "Se conecto un cliente: {0}.", socket.getInetAddress().getHostName());
     // Como ya hay socket, obtengo los flujos asociados a este
+
+    // INIT de las variables globales dentro del while de interacción con el usuario
+    boolean connectionIsNotLost = true;
+    Cipher decipher = Cipher.getInstance("AES");
+    Cipher cipher = Cipher.getInstance("AES");
+    
+    decipher.init(Cipher.DECRYPT_MODE, llave);
+    cipher.init(Cipher.ENCRYPT_MODE, llave);
+    
     DataInputStream dis = new DataInputStream( socket.getInputStream() );
     DataOutputStream dos = new DataOutputStream( socket.getOutputStream() );
-    // Despues de la conexion, Servidor y Cliente deben ponerse de acuerdo
-    // para ver quien escribe primero y entonces el otro debe leer
+
+    String mensaje = "";
+    String opcionLeida = "";
+    String response = "";
+
+    byte[] cipherText;
+    int bytesLeidos
+
     BufferedReader br = new BufferedReader( new InputStreamReader( System.in ) );
-    // Como el Cliente escribe, yo debo leer
-    int bytesLeidos = dis.read();
 
+    while(connectionIsNotLost){
 
+      //MANDO QUE SE ACEPTO Y LA BIENVENIDA JUNTO LAS OPCIONES DISPONIBLES
+      mensaje = "Conexion aceptada \n Elige una de las siguientes opciones seguidas de un 'ENTER'\n\n 1.-\t Consultar saldo\n 2.-\t Depositar\n 3.-\t Retirar\n 4.-\t Salir";
 
+      cipherText = cipher.doFinal(mensaje.getBytes());
+      dos.write( cipherText.length );
+      dos.write( cipherText );
 
-    logger.log(Level.INFO, "bytes leidos= {0}.", bytesLeidos);
-    byte arreglo[]  = new byte[bytesLeidos];
-    dis.read( arreglo );
+      //LECTURA DE LA RESPUESTA AL CLIENTE
+      bytesLeidos = dis.read();
+      logger.log(Level.INFO, "bytes leidos= {0}.", bytesLeidos);
+      byte arreglo[]  = new byte[bytesLeidos];
+      dis.read( arreglo );
+      byte[] newPlainText = decipher.doFinal(arreglo);
+      opcionLeida = new String(newPlainText, "UTF8");
+      logger.log(Level.INFO, "El argumento DESENCRIPTADO es: {0}", opcionLeida);
 
-    Cipher cifrar = Cipher.getInstance("AES");
-    cifrar.init(Cipher.DECRYPT_MODE, llave);
-    bytesToBits( arreglo );
-    byte[] newPlainText = cifrar.doFinal(arreglo);
-    logger.log(Level.INFO,  "El argumento DESENCRIPTADO es:" );
-    String mensaje = new String(newPlainText, "UTF8");
-    logger.log(Level.INFO, mensaje);
-    dos.writeUTF(mensaje);
+      switch (opcionLeida) {
+        case "1":
+          response = cipher.doFinal(getSaldo());
+          dos.write( response.length );
+          dos.write( response );
+          break;
+        case "2":
+            
+          break;
+        case "3":
+              
+          break;
+        case "4":
+                
+          break;
+      
+        default:
+          break;
+      }
+  
+      logger.log(Level.INFO, "bytes leidos= {0}.", bytesLeidos);
+      byte arreglo[]  = new byte[bytesLeidos];
+      dis.read( arreglo );
+
+  
+      decipher.init(Cipher.DECRYPT_MODE, llave);
+      bytesToBits( arreglo );
+      byte[] newPlainText = decipher.doFinal(arreglo);
+      logger.log(Level.INFO,  "El argumento DESENCRIPTADO es:" );
+      mensaje = new String(newPlainText, "UTF8");
+      logger.log(Level.INFO, mensaje);
+      dos.writeUTF(mensaje);
+
+      connectionIsNotLost = false;
+    }
+    
 
     dos.close();
     dis.close();
@@ -86,24 +137,20 @@ public class ServidorCifrado02
 
  }
 
-	public static void bytesToBits( byte[] texto )
-	{
-		StringBuilder stringToBits = new StringBuilder();
-		for( int i=0; i < texto.length; i++ )
-		{
-			StringBuilder binary = new StringBuilder();
-			byte b = texto[i];
-			int val = b;
-			for( int j = 0; j < 8; j++ )
-			{
-				binary.append( (val & 128) == 0 ? 0 : 1 );
-				val <<= 1;
-			}
-			System.out.println( (char)b + " \t " + b + " \t " + binary );
-			stringToBits.append( binary );
-		}
-		System.out.println( "El mensaje completo en bits es:" + stringToBits );
-	}
+  public static void bytesToBits(byte[] texto) {
+    StringBuilder stringToBits = new StringBuilder();
+    for (int i = 0; i < texto.length; i++) {
+      StringBuilder binary = new StringBuilder();
+      byte b = texto[i];
+      int val = b;
+      for (int j = 0; j < 8; j++) {
+        binary.append((val & 128) == 0 ? 0 : 1);
+        val <<= 1;
+      }
+      System.out.println((char) b + " \t " + b + " \t " + binary);
+      stringToBits.append(binary);
+    }
+    System.out.println("El mensaje completo en bits es:" + stringToBits);
+  }
 
 }
-
