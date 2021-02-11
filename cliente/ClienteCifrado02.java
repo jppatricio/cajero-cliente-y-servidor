@@ -22,7 +22,7 @@ public class ClienteCifrado02
    System.out.println( "llave=" + llave );
    */
                         
-   ObjectInput in = new ObjectInputStream(new FileInputStream("llave.ser"));
+   ObjectInput in = new ObjectInputStream(new FileInputStream("../servidor/llave.ser"));
    Key llave = (Key)in.readObject();
    System.out.println( "llave=" + llave );
    in.close();
