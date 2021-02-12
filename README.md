@@ -1,6 +1,6 @@
 # Socket connection with JAVA
 
-This is the source code for deploying a cashier aplication that connects though sockets. This repo contains both client and server codes.
+This is the source code for deploying a cashier application that connects though sockets. This repo contains both client and server codes.
 
 ## Installation
 
