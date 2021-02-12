@@ -40,13 +40,14 @@ public class ClienteCifrado02 {
         try {
             Logger logger = Logger.getLogger(ClienteCifrado02.class.toString());
             //El cliente encontrará la llave en el path /servidor/llave.ser
-            ObjectInput in = new ObjectInputStream(new FileInputStream("../servidor/llave.ser"));
+            ObjectInput in = new ObjectInputStream(new FileInputStream("llave.ser"));
             Key llave = (Key) in.readObject();//lectura de la llave
             logger.log(Level.INFO, "llave= {0}.", llave);
             in.close();
 
             System.out.println("Me conecto al puerto 8000 del servidor");
             socket = new Socket(a[0], 8000);
+            socket = new Socket
             // Como ya hay socket, obtengo los flujos asociados a este
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
