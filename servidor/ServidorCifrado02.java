@@ -1,3 +1,12 @@
+/*
+ACS - Poryecto Final
+Objetivo: Crear una comunicación cifrada cliente-servidor mediante sockets PCP 
+usando una llave privada. 
+
+-Este es el código del Servidor,abre el socket 8000 por defeto, y espera a que se conecte el cliente
+
+Alumnos : Jaime Porras Patricio, Arias Pelayo Thomas Alejandro
+*/
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -13,18 +22,19 @@ public class ServidorCifrado02 {
   public static void main(String a[]) throws Exception {
 
     Logger logger = Logger.getLogger(ServidorCifrado02.class.toString());
-
+    //Creacion de los sockets
     ServerSocket serverSocket = null;
     Socket socket = null;
     boolean estadoSesion = true;
-
+    //Generamos la llave 
     logger.log(Level.INFO, "Generando la llave...");
-    KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-    keyGen.init(128);
+    KeyGenerator keyGen = KeyGenerator.getInstance("AES");//usamos modo de encriptación AES
+    keyGen.init(128);//numero de bits de la llave
+    //Se crea la llave
     Key llave = keyGen.generateKey();
     logger.log(Level.INFO, "llave= {0}.", llave);
     logger.log(Level.INFO, "Llave generada!");
-
+    //Se copia la llave en un archivo .ser
     ObjectOutput out = new ObjectOutputStream(new FileOutputStream("llave.ser"));
     out.writeObject(llave);
     out.close();
@@ -68,7 +78,7 @@ public class ServidorCifrado02 {
 
           // MANDO QUE SE ACEPTO Y LA BIENVENIDA JUNTO LAS OPCIONES DISPONIBLES
           mensaje = "Conexion aceptada \n Elige una de las siguientes opciones seguidas de un 'ENTER'\n\n 1.-\t Consultar saldo\n 2.-\t Depositar\n 3.-\t Retirar\n 4.-\t Salir";
-
+          //envia el mensaje cifrado al cliente para que elija la opcion que guste
           cipherText = cipher.doFinal(mensaje.getBytes());
           dos.write(cipherText.length);
           dos.write(cipherText);
@@ -83,21 +93,24 @@ public class ServidorCifrado02 {
           logger.log(Level.INFO, "El argumento DESENCRIPTADO es: {0}", opcionLeida);
 
           String errorMsg = "Algo salio mal. Reintente";
-
+          //segun la opcionLeida que elije el cliente se hacen las instrucciones de Consultar/Depositar/Retirar
           switch (opcionLeida) {
             case "1":
               if (!getSaldo().equalsIgnoreCase("")) {
+                //manda el saldo al cliente en un mensaje cifrado
                 cipherText = cipher.doFinal(getSaldo().getBytes());
                 dos.write(cipherText.length);
                 dos.write(cipherText);
               } else {
+                //manda mensaje de error
                 cipherText = cipher.doFinal(errorMsg.getBytes());
                 dos.write(cipherText.length);
                 dos.write(cipherText);
               }
               break;
-
+                //opcion de depositar dinero
             case "2":
+            //envia el mensaje cifrado al cliente
               cipherText = cipher.doFinal("¿Cuanto quiere depositar?".getBytes());
               dos.write(cipherText.length);
               dos.write(cipherText);
@@ -112,26 +125,26 @@ public class ServidorCifrado02 {
                 opcionLeida = new String(newPlainText, "UTF8");
                 logger.log(Level.INFO, "El argumento DESENCRIPTADO es: {0}", opcionLeida);
                 try {
-                  float f = Float.parseFloat(opcionLeida);
-                  if (putDeposit(f)) {
+                  float f = Float.parseFloat(opcionLeida);//le la cantidad de dinero que quiere depositar el cliente
+                  if (putDeposit(f)) {//si registra bien el deposito entonces se madnda mensaje cifrado
                     cipherText = cipher.doFinal("Se ha registrado su deposito correctamente".getBytes());
                     dos.write(cipherText.length);
                     dos.write(cipherText);
                     correctDeposit = true;
-                  } else {
+                  } else {//manda un mensaje cifrado de error al clliente
                     cipherText = cipher.doFinal(errorMsg.getBytes());
                     dos.write(cipherText.length);
                     dos.write(cipherText);
                     correctDeposit = false;
                   }
-                } catch (Exception e) {
+                } catch (Exception e) {//El cliente no ingreso un valor numerico
                   cipherText = cipher.doFinal("Error > Ingrese un valor numerico... *Ej=>200.50".getBytes());
                   dos.write(cipherText.length);
                   dos.write(cipherText);
                 }
               }
               break;
-            case "3":
+            case "3"://case para la opcion de retirar
               cipherText = cipher.doFinal("¿Cuanto quiere retirar?".getBytes());
               dos.write(cipherText.length);
               dos.write(cipherText);
@@ -146,19 +159,21 @@ public class ServidorCifrado02 {
                 opcionLeida = new String(newPlainText, "UTF8");
                 logger.log(Level.INFO, "Withdrawing: {0}", opcionLeida);
                 try {
-                  float f = Float.parseFloat(opcionLeida);
+                  float f = Float.parseFloat(opcionLeida);//lee la cantidad de dinero que quiere retirar el cliente
                   if (putWithdrawal(f).equalsIgnoreCase("OK")) {
-                    cipherText = cipher
-                        .doFinal(("Se ha registrado su retiro de $" + f + "MXN correctamente").getBytes());
+                    cipherText = cipher.doFinal(("Se ha registrado su retiro de $" + f + "MXN correctamente").getBytes());
+                    //se manda mensaje de retiro cifrado al cliente
                     dos.write(cipherText.length);
                     dos.write(cipherText);
                     correctWithdrawal = true;
+                    //Si se trata de retirar más dinero del que se tiene manda mensaje cifrado de que no se tiene suficiente dinero
                   } else if (putWithdrawal(f).equalsIgnoreCase("ZERO")) {
                     cipherText = cipher.doFinal(("No tiene suficiente dinero...").getBytes());
                     dos.write(cipherText.length);
                     dos.write(cipherText);
                     correctWithdrawal = true;
                   } else {
+                    //envía mensaje de error cifrado
                     cipherText = cipher.doFinal(errorMsg.getBytes());
                     dos.write(cipherText.length);
                     dos.write(cipherText);
@@ -171,7 +186,7 @@ public class ServidorCifrado02 {
                 }
               }
               break;
-            case "4":
+            case "4"://case para salir
               cipherText = cipher.doFinal("¡Hasta luego!".getBytes());
               dos.write(cipherText.length);
               dos.write(cipherText);
@@ -183,7 +198,7 @@ public class ServidorCifrado02 {
               break;
           }
         }
-
+        //cierra el socket y el data input/output streamer
         dos.close();
         dis.close();
         socket.close();
@@ -195,7 +210,8 @@ public class ServidorCifrado02 {
     }
 
   }
-
+    //Esta funcion ya esta del ejemplo de ClienteCifrado02.java en http://profesores.fi-b.unam.mx/carlos/acs/Tema-06-Sockets-Java-Criptografia/
+    //para que la terminal se viera un poco más limpia no la llamamos en ningun lado
   public static void bytesToBits(byte[] texto) {
     StringBuilder stringToBits = new StringBuilder();
     for (int i = 0; i < texto.length; i++) {
@@ -213,6 +229,7 @@ public class ServidorCifrado02 {
 
   }
 
+  //De aquí en adelnate se definen las funciones para mostrar saldo, retirar y depositar dinero
   public static String getSaldo() {
     try {
       FileReader reader = new FileReader("client.txt");

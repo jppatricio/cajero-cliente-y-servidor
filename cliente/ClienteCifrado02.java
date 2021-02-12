@@ -1,3 +1,12 @@
+/*
+ACS - Poryecto Final
+Objetivo: Crear una comunicación cifrada cliente-servidor mediante sockets PCP 
+usando una llave privada. 
+
+-Este es el código del cliente, se conecta a un servidor (da a eleigor el socket, pero mejor conectarse al 8000 que es el defecto)
+
+Alumnos : Jaime Porras Patricio, Arias Pelayo Thomas Alejandro
+*/
 import java.net.*;
 import java.io.*;
 import java.security.*;
@@ -11,8 +20,11 @@ public class ClienteCifrado02 {
         Socket socket = null;
         // Peticion es lo que envia el Cliente
         String peticion = "";
+        //Respueste es lo que recibe del servidor
         String respuesta = null;
+        //Sirve para saber si hay desconexion del socket
         boolean conectionIsNotLost = true;
+        //Variables para ller valores cifrados y descifrar
         byte[] cipherText;
         int bytesLeidos;
         Cipher decipher = Cipher.getInstance("AES");
@@ -21,14 +33,15 @@ public class ClienteCifrado02 {
         String opcionLeida = "";
         String response = "";
 
+        //Para saber si el cliente debe esciribir en este momento o esperar una respuesta
         boolean mustWrite = true;
         boolean waitResponse = false;
 
         try {
             Logger logger = Logger.getLogger(ClienteCifrado02.class.toString());
-
+            //El cliente encontrará la llave en el path /servidor/llave.ser
             ObjectInput in = new ObjectInputStream(new FileInputStream("../servidor/llave.ser"));
-            Key llave = (Key) in.readObject();
+            Key llave = (Key) in.readObject();//lectura de la llave
             logger.log(Level.INFO, "llave= {0}.", llave);
             in.close();
 
@@ -38,7 +51,7 @@ public class ClienteCifrado02 {
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-
+            //variables para incializar el cifrador/descifrador
             decipher.init(Cipher.DECRYPT_MODE, llave);
             cipher.init(Cipher.ENCRYPT_MODE, llave);
 
@@ -86,11 +99,12 @@ public class ClienteCifrado02 {
                         waitResponse = false;
                         mustWrite = true;
                     }
-
+                    //Si se pide consultar el saldo entonces recibe el saldo del servidor y se deb dar enter para elegir de nuevo otra opcion en el menu
                     else if (peticion.equalsIgnoreCase("1")) {
                         System.out.println("Enter para continuar...");
                         br.readLine();
                         mustWrite = true;
+                        //SI se elige la opcion para depositar o retirar se lee la cantidad en cuestion con br.readLine
                     } else if (peticion.equalsIgnoreCase("2") || peticion.equalsIgnoreCase("3")) {
 
                         peticion = br.readLine();
@@ -113,7 +127,8 @@ public class ClienteCifrado02 {
             e.printStackTrace();
         }
     }
-
+    //Esta funcion ya esta del ejemplo de ClienteCifrado02.java en http://profesores.fi-b.unam.mx/carlos/acs/Tema-06-Sockets-Java-Criptografia/
+    //para que la terminal se viera un poco más limpia no la llamamos en ningun lado
     public static void bytesToBits(byte[] texto) {
         StringBuilder stringToBits = new StringBuilder();
         for (int i = 0; i < texto.length; i++) {
